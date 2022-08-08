@@ -1,66 +1,51 @@
 package works.weave.socks.queuemaster.configuration;
 
-import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.amqp.support.converter.DefaultClassMapper;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import works.weave.socks.shipping.entities.Shipment;
 
 @Configuration
-public class RabbitMqConfiguration
-{
-    final static String queueName = "shipping-task";
+public class RabbitMqConfiguration {
 
-    @Bean
-    public ConnectionFactory connectionFactory()
-    {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory("rabbitmq");
-        connectionFactory.setCloseTimeout(5000);
-        connectionFactory.setConnectionTimeout(5000);
-        connectionFactory.setUsername("guest");
-        connectionFactory.setPassword("guest");
-        return connectionFactory;
-    }
+  @Value("${queuemaster.rabbitmq.topicexchange}")
+  private String exchangeName;
 
-    @Bean
-    public AmqpAdmin amqpAdmin()
-    {
-        return new RabbitAdmin(connectionFactory());
-    }
+  @Value("${queuemaster.rabbitmq.queue}")
+  private String queueName;
 
-    @Bean
-    public MessageConverter jsonMessageConverter()
-    {
-        final Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
-        converter.setClassMapper(classMapper());
-        return converter;
-    }
+  @Bean
+  Queue queue() {
+    return new Queue(queueName, false);
+  }
 
-    @Bean
-    public DefaultClassMapper classMapper()
-    {
-        DefaultClassMapper typeMapper = new DefaultClassMapper();
-        typeMapper.setDefaultType(Shipment.class);
-        return typeMapper;
-    }
+  @Bean
+  TopicExchange exchange() {
+    return new TopicExchange(exchangeName);
+  }
 
-    @Bean
-    Queue queue() {
-        return new Queue(queueName, false);
-    }
+  @Bean
+  Binding binding(Queue queue, TopicExchange exchange) {
+    return BindingBuilder.bind(queue).to(exchange).with(queueName);
+  }
 
-    @Bean
-    TopicExchange exchange() {
-        return new TopicExchange("shipping-task-exchange");
-    }
+  @Bean
+  MessageConverter jsonMessageConverter() {
+    return new Jackson2JsonMessageConverter();
+  }
 
-    @Bean
-    Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(queueName);
-    }
+  @Bean
+  RabbitTemplate rabbitTemplate(
+      ConnectionFactory connectionFactory, MessageConverter jsonConverter) {
+    var rabbitTemplate = new RabbitTemplate(connectionFactory);
+    rabbitTemplate.setMessageConverter(jsonConverter);
+    return rabbitTemplate;
+  }
 }

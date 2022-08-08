@@ -1,0 +1,43 @@
+server:
+  port: ${port:8080}
+management:
+  endpoint:
+    health:
+      enabled: false
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+        - '*'
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  rabbitmq:
+    host: ${rabbitmq_host:127.0.0.1}
+    port: 5672
+    username: ${rabbitmq_username:guest}
+    password: ${rabbitmq_password:guest}
+#    listener:
+#      simple:
+#        retry:
+#          enabled: true
+#          initial-interval: 3s
+#          max-attempts: 6
+#          max-interval: 10s
+#          multiplier: 2
+queuemaster:
+  rabbitmq:
+    queue: ${shipping_queue:shipping-task}
+    topicexchange: ${shipping_exchange:shipping-task-exchange}
+  dockerSpawner:
+    imageName: ${docker_image_name:"dev.cams7-job.ml:5000/worker"}
+    imageVersion: ${docker_image_version:latest}
+    networkId: ${docker_image_network:sockshop}
