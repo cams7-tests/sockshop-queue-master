@@ -1,19 +1,27 @@
 package works.weave.socks.queuemaster.entities;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.Calendar;
-import java.util.Date;
-import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+@NoArgsConstructor
 public class HealthCheck {
+
+  @Schema(example = "orders-db", description = "Health check service")
   private String service;
+
+  @Schema(example = "OK", description = "Health check status")
   private String status;
 
-  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-  private Date date = Calendar.getInstance().getTime();
+  @Schema(example = "2022-08-23T18:32:25.829596", description = "Health check datetime")
+  private LocalDateTime date;
+
+  public HealthCheck(String service, String status) {
+    this();
+    this.service = service;
+    this.status = status;
+    this.date = LocalDateTime.now();
+  }
 }

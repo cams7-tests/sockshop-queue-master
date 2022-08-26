@@ -1,5 +1,8 @@
 server:
   port: ${port:8080}
+  error:
+    include-message: ALWAYS
+    include-stacktrace: NEVER
 management:
   endpoint:
     health:
@@ -33,6 +36,11 @@ spring:
 #          max-attempts: 6
 #          max-interval: 10s
 #          multiplier: 2
+
+springdoc:
+  api-docs:
+    path: /api-docs
+
 queuemaster:
   rabbitmq:
     queue: ${shipping_queue:shipping-task}
